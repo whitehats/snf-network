@@ -1,0 +1,6 @@
+snf-network (0.1-1) stable; urgency=low
+
+  * Provide software components used by synnefo and Ganeti for networking
+    functionality inside the cluster 
+
+ -- Dimitris Aragiorgis <dimara@grnet.gr>  Sat, 31 Mar 2012 18:31:51 +0300

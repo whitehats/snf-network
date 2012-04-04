@@ -1,0 +1,35 @@
+nfdhcpd/nfdhcpd.conf etc/nfdhcpd
+nfdhcpd/nfdhcpd.ferm etc/ferm
+nfdhcpd/nfdhcpd usr/sbin
+
+tools/mac2eui64 usr/bin
+vlans/prv-net-helper usr/sbin
+
+vlans/if-up.d/vmrouter  etc/network/if-up.d
+vlans/if-down.d/vmrouter  etc/network/if-down.d
+
+kvm-vif-bridge etc/ganeti
+
+hooks etc/ganeti/
+
+conf/snf-network.conf etc/snf-network
+conf/infra.conf etc/snf-network
+
+snf-network-build-node-infra usr/bin
+
+snf-network-get-network-env usr/bin
+
+snf-network-configure-interfaces usr/bin
+snf-network-unconfigure-interfaces usr/bin
+
+snf-network-masq-on usr/bin
+snf-network-masq-off usr/bin
+
+snf-network-ipless-routing-on usr/bin
+snf-network-ipless-routing-off usr/bin
+
+snf-network-mac-prefix usr/bin
+clear-proxy-ndp usr/bin
+log-env usr/bin
+
+clear-tap usr/bin
