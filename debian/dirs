@@ -1,5 +1,3 @@
-var/lib/nfdhcpd
-var/log/nfdhcpd
 var/lib/snf-network
 etc/snf-network
 

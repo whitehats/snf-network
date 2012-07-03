@@ -1,7 +1,3 @@
-nfdhcpd/nfdhcpd.conf etc/nfdhcpd
-nfdhcpd/nfdhcpd.ferm etc/ferm
-nfdhcpd/nfdhcpd usr/sbin
-
 tools/mac2eui64 usr/bin
 vlans/prv-net-helper usr/sbin
 

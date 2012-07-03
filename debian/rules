@@ -5,6 +5,3 @@
 	dh $@
 
 
-override_dh_installinit:
-	dh_installinit --name=nfdhcpd
-	dh_installinit
