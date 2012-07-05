@@ -8,7 +8,7 @@ Standards-Version: 3.9.1
 Package: snf-network
 Architecture: all
 Conflicts: grnet-vnode-tools
-Replaces: grnet-vnode-tools, snf-cyclades-gtools
+Replaces: grnet-vnode-tools, snf-cyclades-gtools, nfdhcpd
 Depends: ${misc:Depends}, ${python:Depends}, python-scapy(>= 2.0.1-1),
          python-daemon(>=1.5.2-1), python-pyinotify(>=0.7.1-1),
          python-ipy(>=1:0.62-1), nfqueue-bindings-python(>=0.3-2),
