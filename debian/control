@@ -7,14 +7,12 @@ Standards-Version: 3.9.1
 
 Package: snf-network
 Architecture: all
-Conflicts: grnet-vnode-tools
 Replaces: grnet-vnode-tools, snf-cyclades-gtools, nfdhcpd
 Depends: ${misc:Depends}, ${python:Depends}, python-scapy(>= 2.0.1-1),
          python-daemon(>=1.5.2-1), python-pyinotify(>=0.7.1-1),
          python-ipy(>=1:0.62-1), nfqueue-bindings-python(>=0.3-2),
          python-cap-ng(>=0.6.0-1), python(>=2.4), python-configobj(>= 4.5.2-1),
          iptables, arptables, ipcalc, ebtables, ferm, tcpdump, nfdhcpd(>=0.7-1)
-Provides: grnet-vnode-tools
 Description: Networking support for VMs inside the Ganeti Cluster.
  This package provides the following utilities:
   * vlan handling forGRNET's specific IP-less routing and proxy ARP
