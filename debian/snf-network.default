@@ -2,4 +2,4 @@ DEFAULT=/etc/default/snf-network
 
 CONF=/etc/snf-network/snf-network.conf
 
-INFRA=/etc/snf-network/infra.conf
+INFRA=/etc/snf-network/generic.conf
