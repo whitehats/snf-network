@@ -1,15 +1,3 @@
-This package provides:
-- kvm-vif-bridge for providing network connectivity to VMs
-- mac2eui64 for getting IPv6 address from a mac
-- vmrouter if-up/down scripts that prepare routing tables and ip rules needed for GRNET setup
-- prv-net-helper for creating bridged pools
-- clear-proxy-ndp for removing stale entries
-
-
-
-
-# /etc/network/interfaces examples
-
 ###############
 # GRNET SETUP #
 ###############
@@ -20,8 +8,8 @@ This package provides:
 # The values of ip-routes and ip-gateway must be the same
 # decrared in ganeti network related to this routing table.
 # gnt-network add --network=62.217.123.128/27 --gateway=62.217.123.129 
-#                 --network6=2001:648:2ffc:1201::/64 --gateway6=2001:648:2ffc:1201::1
-#                 --network-type=public --tags=nfdhcpd,ip-less-routed snf-net-1
+                  --network6=2001:648:2ffc:1201::/64 --gateway6=2001:648:2ffc:1201::1
+                  --network-type=public --tags=nfdhcpd,ip-less-routed snf-net-1
 # gnt-network connect snf-net-1 all routed snf_public
 
 auto eth0.201

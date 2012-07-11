@@ -2,20 +2,3 @@
 /usr/bin/clear-proxy-ndp /etc/ganeti/hooks/instance-migrate-post.d/clear-proxy-ndp
 /usr/bin/clear-proxy-ndp /etc/ganeti/hooks/instance-stop-post.d/clear-proxy-ndp
 /usr/bin/clear-proxy-ndp /etc/ganeti/hooks/instance-failover-post.d/clear-proxy-ndp
-
-
-/usr/bin/log-env /etc/ganeti/hooks/cluster-init-post.d/log-env
-/usr/bin/log-env /etc/ganeti/hooks/instance-add-post.d/log-env
-/usr/bin/log-env /etc/ganeti/hooks/instance-failover-post.d/log-env
-/usr/bin/log-env /etc/ganeti/hooks/instance-migrate-post.d/log-env
-/usr/bin/log-env /etc/ganeti/hooks/instance-modify-post.d/log-env
-/usr/bin/log-env /etc/ganeti/hooks/instance-reboot-post.d/log-env
-/usr/bin/log-env /etc/ganeti/hooks/instance-remove-post.d/log-env
-/usr/bin/log-env /etc/ganeti/hooks/instance-start-post.d/log-env
-/usr/bin/log-env /etc/ganeti/hooks/instance-stop-post.d/log-env
-/usr/bin/log-env /etc/ganeti/hooks/network-add-post.d/log-env
-/usr/bin/log-env /etc/ganeti/hooks/network-connect-post.d/log-env
-/usr/bin/log-env /etc/ganeti/hooks/network-disconnect-post.d/log-env
-/usr/bin/log-env /etc/ganeti/hooks/network-modify-post.d/log-env
-/usr/bin/log-env /etc/ganeti/hooks/network-remove-post.d/log-env
-/usr/bin/log-env /etc/ganeti/hooks/node-add-post.d/log-env

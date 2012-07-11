@@ -1,5 +1,1 @@
-DEFAULT=/etc/default/snf-network
-
-CONF=/etc/snf-network/snf-network.conf
-
-INFRA=/etc/snf-network/generic.conf
+MAC_MASK=ff:ff:ff:00:00:00
