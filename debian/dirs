@@ -1,5 +1,3 @@
-etc/snf-network
-
 etc/ganeti/hooks
 etc/ganeti/hooks/instance-failover-post.d
 etc/ganeti/hooks/instance-migrate-post.d
