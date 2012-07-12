@@ -1,4 +1,4 @@
-snf-network (0.1-1) stable; urgency=low
+snf-network (0.10.0-1) unstable; urgency=low
 
   * Provide software components used by synnefo and Ganeti for networking
     functionality inside the cluster 
