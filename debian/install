@@ -7,5 +7,3 @@ vlans/if-down.d/vmrouter  etc/network/if-down.d
 kvm-vif-bridge etc/ganeti
 
 clear-proxy-ndp usr/bin
-
-clear-tap usr/bin
