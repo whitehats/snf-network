@@ -1,8 +1,4 @@
-tools/mac2eui64 usr/bin
-vlans/prv-net-helper usr/sbin
-
-vlans/if-up.d/vmrouter  etc/network/if-up.d
-vlans/if-down.d/vmrouter  etc/network/if-down.d
+mac2eui64 usr/bin
 
 kvm-vif-bridge etc/ganeti
 

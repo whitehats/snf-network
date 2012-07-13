@@ -1,6 +1,6 @@
 snf-network (0.10.0-1) unstable; urgency=low
 
-  * Provide software components used by synnefo and Ganeti for networking
-    functionality inside the cluster 
+  * Provide scripts for networking functionality inside the Ganeti cluster
+    (kvm-vif-bridge, mac2eui64, clear-proxy-ndp) 
 
  -- Dimitris Aragiorgis <dimara@grnet.gr>  Sat, 31 Mar 2012 18:31:51 +0300
