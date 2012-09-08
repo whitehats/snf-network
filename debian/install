@@ -3,3 +3,4 @@ mac2eui64 usr/bin
 kvm-vif-bridge etc/ganeti
 
 clear-proxy-ndp usr/bin
+hooks-log usr/bin
