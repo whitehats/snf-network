@@ -1,6 +1,9 @@
 mac2eui64 usr/bin
 
 kvm-vif-bridge etc/ganeti
+vif-custom etc/xen/scripts
 
 clear-proxy-ndp usr/bin
 hooks-log usr/bin
+
+common.sh usr/lib/snf-network

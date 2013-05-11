@@ -1,5 +1,10 @@
 MAC_MASK=ff:ff:ff:00:00:00
 
+TAP_CONSTANT_MAC=cc:47:52:4e:45:54 # GRNET in hex :-)
+MAC2EUI64=/usr/bin/mac2eui64
+NFDHCPD_STATE_DIR=/var/lib/nfdhcpd
+GANETI_NIC_DIR=/var/run/ganeti/xen-hypervisor/nic
+
 MAC_FILTERED_TAG=private-filtered
 NFDHCPD_TAG=nfdhcpd
 IP_LESS_ROUTED_TAG=ip-less-routed

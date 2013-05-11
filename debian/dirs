@@ -3,3 +3,5 @@ etc/ganeti/hooks/instance-failover-post.d
 etc/ganeti/hooks/instance-migrate-post.d
 etc/ganeti/hooks/instance-remove-post.d
 etc/ganeti/hooks/instance-stop-post.d
+usr/lib/snf-network
+etc/xen/scripts
