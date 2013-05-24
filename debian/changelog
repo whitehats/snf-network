@@ -1,6 +1,6 @@
-snf-network (0.11.1-1) unstable; urgency=low
+snf-network (0.14.0-1) unstable; urgency=low
 
   * Provide scripts for networking functionality inside the Ganeti cluster
     (kvm-vif-bridge, mac2eui64, clear-proxy-ndp) 
 
- -- Dimitris Aragiorgis <dimara@grnet.gr>  Sat, 31 Mar 2012 18:31:51 +0300
+ -- Dimitris Aragiorgis <dimara@grnet.gr>  Fri, 24 May 2013 18:05:14 +0300
