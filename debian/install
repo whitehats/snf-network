@@ -7,3 +7,5 @@ clear-proxy-ndp usr/bin
 hooks-log usr/bin
 
 common.sh usr/lib/snf-network
+
+runlocked usr/bin

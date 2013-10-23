@@ -9,3 +9,6 @@ MAC_FILTERED_TAG=private-filtered
 NFDHCPD_TAG=nfdhcpd
 IP_LESS_ROUTED_TAG=ip-less-routed
 MASQ_TAG=masq
+
+# Default options for runlocked helper script (uncomment to modify)
+#RUNLOCKED_OPTS="--id 10001 --retry-sec 0.5"
