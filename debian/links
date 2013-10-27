@@ -1,4 +1,4 @@
-/usr/bin/clear-proxy-ndp /etc/ganeti/hooks/instance-remove-post.d/clear-proxy-ndp
-/usr/bin/clear-proxy-ndp /etc/ganeti/hooks/instance-migrate-post.d/clear-proxy-ndp
-/usr/bin/clear-proxy-ndp /etc/ganeti/hooks/instance-stop-post.d/clear-proxy-ndp
-/usr/bin/clear-proxy-ndp /etc/ganeti/hooks/instance-failover-post.d/clear-proxy-ndp
+/usr/bin/fix-net /etc/ganeti/hooks/instance-remove-post.d/fix-net
+/usr/bin/fix-net /etc/ganeti/hooks/instance-migrate-post.d/fix-net
+/usr/bin/fix-net /etc/ganeti/hooks/instance-stop-post.d/fix-net
+/usr/bin/fix-net /etc/ganeti/hooks/instance-failover-post.d/fix-net
