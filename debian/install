@@ -5,6 +5,7 @@ vif-custom etc/xen/scripts
 
 fix-net usr/bin
 hooks-log usr/bin
+dnshook usr/bin
 
 common.sh usr/lib/snf-network
 
