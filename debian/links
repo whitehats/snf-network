@@ -1,12 +1,12 @@
 /usr/bin/fix-net /etc/ganeti/hooks/instance-remove-post.d/fix-net
-/usr/bin/fix-net /etc/ganeti/hooks/instance-migrate-post.d/fix-net
 /usr/bin/fix-net /etc/ganeti/hooks/instance-stop-post.d/fix-net
+/usr/bin/fix-net /etc/ganeti/hooks/instance-migrate-post.d/fix-net
 /usr/bin/fix-net /etc/ganeti/hooks/instance-failover-post.d/fix-net
 
-/usr/bin/dnshook /etc/ganeti/hooks/instance-create-post.d/dnshook
-/usr/bin/dnshook /etc/ganeti/hooks/instance-remove-post.d/dnshook
+/usr/bin/dnshook /etc/ganeti/hooks/instance-add-post.d/dnshook
 /usr/bin/dnshook /etc/ganeti/hooks/instance-modify-post.d/dnshook
 /usr/bin/dnshook /etc/ganeti/hooks/instance-rename-post.d/dnshook
+/usr/bin/dnshook /etc/ganeti/hooks/instance-remove-post.d/dnshook
 /usr/bin/dnshook /etc/ganeti/hooks/instance-start-post.d/dnshook
-/usr/bin/dnshook /etc/ganeti/hooks/instance-stop-post.d/dnshook
 /usr/bin/dnshook /etc/ganeti/hooks/instance-reboot-post.d/dnshook
+/usr/bin/dnshook /etc/ganeti/hooks/instance-stop-post.d/dnshook
