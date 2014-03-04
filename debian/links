@@ -1,12 +1,14 @@
-/usr/bin/fix-net /etc/ganeti/hooks/instance-remove-post.d/fix-net
-/usr/bin/fix-net /etc/ganeti/hooks/instance-stop-post.d/fix-net
-/usr/bin/fix-net /etc/ganeti/hooks/instance-migrate-post.d/fix-net
-/usr/bin/fix-net /etc/ganeti/hooks/instance-failover-post.d/fix-net
+/usr/bin/snf-network-hook /etc/ganeti/hooks/instance-remove-post.d/snf-network-hook
+/usr/bin/snf-network-hook /etc/ganeti/hooks/instance-stop-post.d/snf-network-hook
+/usr/bin/snf-network-hook /etc/ganeti/hooks/instance-migrate-post.d/snf-network-hook
+/usr/bin/snf-network-hook /etc/ganeti/hooks/instance-failover-post.d/snf-network-hook
 
-/usr/bin/dnshook /etc/ganeti/hooks/instance-add-post.d/dnshook
-/usr/bin/dnshook /etc/ganeti/hooks/instance-modify-post.d/dnshook
-/usr/bin/dnshook /etc/ganeti/hooks/instance-rename-post.d/dnshook
-/usr/bin/dnshook /etc/ganeti/hooks/instance-remove-post.d/dnshook
-/usr/bin/dnshook /etc/ganeti/hooks/instance-start-post.d/dnshook
-/usr/bin/dnshook /etc/ganeti/hooks/instance-reboot-post.d/dnshook
-/usr/bin/dnshook /etc/ganeti/hooks/instance-stop-post.d/dnshook
+/usr/bin/snf-network-dnshook /etc/ganeti/hooks/instance-add-post.d/snf-network-dnshook
+/usr/bin/snf-network-dnshook /etc/ganeti/hooks/instance-modify-post.d/snf-network-dnshook
+/usr/bin/snf-network-dnshook /etc/ganeti/hooks/instance-rename-post.d/snf-network-dnshook
+/usr/bin/snf-network-dnshook /etc/ganeti/hooks/instance-remove-post.d/snf-network-dnshook
+/usr/bin/snf-network-dnshook /etc/ganeti/hooks/instance-start-post.d/snf-network-dnshook
+/usr/bin/snf-network-dnshook /etc/ganeti/hooks/instance-reboot-post.d/snf-network-dnshook
+/usr/bin/snf-network-dnshook /etc/ganeti/hooks/instance-stop-post.d/snf-network-dnshook
+
+/etc/ganeti/kvm-ifup-custom /etc/ganeti/kvm-vif-bridge

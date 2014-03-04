@@ -1,3 +1,5 @@
+SNF_NETWORK_LOG=/usr/bin/snf-network-log
+LOGFILE=/var/log/ganeti/snf-network.log
 IFUP_EXTRA_SCRIPT=/etc/ganeti/ifup-extra
 
 MAC_MASK=ff:ff:f0:00:00:00
@@ -28,3 +30,5 @@ FZONE=vm.synnefo.live
 # keyfile path to pass to nsupdate with -k option
 # see man page for more info
 KEYFILE=
+# TTL for the dns entries
+TTL=300

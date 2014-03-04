@@ -1,12 +1,13 @@
 mac2eui64 usr/bin
 
-kvm-vif-bridge etc/ganeti
+kvm-ifup-custom etc/ganeti
+kvm-ifdown-custom etc/ganeti
 ifup-extra etc/ganeti
 vif-custom etc/xen/scripts
 
-fix-net usr/bin
-hooks-log usr/bin
-dnshook usr/bin
+snf-network-hook usr/bin
+snf-network-log usr/bin
+snf-network-dnshook usr/bin
 
 common.sh usr/lib/snf-network
 
