@@ -1,8 +1,10 @@
 #!/bin/bash
 
+source /etc/default/snf-network
+
 function try {
 
-  $1 &>/dev/null || true 
+  $1 &>/dev/null || true
 
 }
 
@@ -20,6 +22,16 @@ function clear_routed_setup_ipv6 {
 
 }
 
+function delete_neighbor_proxy {
+
+  if [ -z "$EUI64" -z -o "$UPLINK6" ]; then
+    return
+  fi
+
+  $SNF_NETWORK_LOG $0 "ip -6 neigh del proxy $EUI64 dev $UPLINK6"
+  ip -6 neigh del proxy $EUI64 dev $UPLINK6
+
+}
 
 function clear_routed_setup_firewall {
 
@@ -68,36 +80,40 @@ function routed_setup_ipv4 {
 	# Enable proxy ARP
 	echo 1 > /proc/sys/net/ipv4/conf/$INTERFACE/proxy_arp
 
+}
+
+function send_garp {
+
+  if [ -z "$IP" -o -z "$UPLINK" ]; then
+    return
+  fi
+
   # Send GARP from host to upstream router
-  get_uplink $TABLE
   echo 1 > /proc/sys/net/ipv4/ip_nonlocal_bind
-  hooks-log $0 "arping  -c3 -I $UPLINK -U $IP"
-  arping  -c3 -I $UPLINK -U $IP
+  $SNF_NETWORK_LOG $0 "arpsend -U -i $IP -c1 $UPLINK"
+  arpsend -U -i $IP -c1 $UPLINK
   echo 0 > /proc/sys/net/ipv4/ip_nonlocal_bind
 
 }
 
 function routed_setup_ipv6 {
-	# Add a routing entry for the eui-64
-  get_uplink $TABLE "-6"
-  get_eui64 $MAC $NETWORK_SUBNET6
 
-  if [ -z "$EUI64" -o -z "$TABLE" -o -z "$INTERFACE" -o -z "$UPLINK" ]
+  if [ -z "$EUI64" -o -z "$TABLE" -o -z "$INTERFACE" -o -z "$UPLINK6" ]
   then
     return
   fi
-
+	# Add a routing entry for the eui-64
 	ip -6 rule add dev $INTERFACE table $TABLE
 	ip -6 ro replace $EUI64/128 dev $INTERFACE table $TABLE
-	ip -6 neigh add proxy $EUI64 dev $UPLINK
+	ip -6 neigh add proxy $EUI64 dev $UPLINK6
 
 	# disable proxy NDP since we're handling this on userspace
 	# this should be the default, but better safe than sorry
 	echo 0 > /proc/sys/net/ipv6/conf/$INTERFACE/proxy_ndp
 
   # Send Unsolicited Neighbor Advertisement
-  hooks-log $0 "ndsend $EUI64 $UPLINK"
-  ndsend $EUI64 $UPLINK
+  $SNF_NETWORK_LOG $0 "ndsend $EUI64 $UPLINK6"
+  ndsend $EUI64 $UPLINK6
 
 }
 
@@ -155,6 +171,7 @@ function setup_ebtables {
   # accept dhcp responses from host (nfdhcpd)
   # this is actually not needed because nfdhcpd opens a socket and binds is with
   # tap interface so dhcp response does not go through bridge
+  # INDEV_MAC=$(cat /sys/class/net/$INDEV/address)
   # runlocked $RUNLOCKED_OPTS ebtables -A $TO -s $INDEV_MAC -p ipv4 --ip-protocol=udp  --ip-destination-port=68 -j ACCEPT
   # allow only packets from the same mac prefix
   runlocked $RUNLOCKED_OPTS ebtables -A $TO -s \! $MAC/$MAC_MASK -j DROP
@@ -186,7 +203,7 @@ GATEWAY=$NETWORK_GATEWAY
 SUBNET=$NETWORK_SUBNET
 GATEWAY6=$NETWORK_GATEWAY6
 SUBNET6=$NETWORK_SUBNET6
-EUI64=$($MAC2EUI64 $MAC $NETWORK_SUBNET6 2>/dev/null)
+EUI64=$EUI64
 EOF
 
 }
@@ -194,8 +211,11 @@ EOF
 function get_uplink {
 
   local table=$1
-  local version=$2
-  UPLINK=$(ip "$version" route list table "$table" | grep "default via" | awk '{print $5}')
+  UPLINK=$(ip route list table $table | grep "default via" | awk '{print $5}')
+  UPLINK6=$(ip -6 route list table $table | grep "default via" | awk '{print $5}')
+  if [ -n "$UPLINK" -o -n "$UPLINK6" ]; then
+    $SNF_NETWORK_LOG $0 "* Table $table: uplink -> $UPLINK, uplink6 -> $UPLINK6"
+  fi
 
 }
 
@@ -212,6 +232,194 @@ get_eui64 () {
     EUI64=
   else
     EUI64=$($MAC2EUI64 $mac $prefix)
+    $SNF_NETWORK_LOG $0 "* $mac + $prefix -> $EUI64"
   fi
+
+}
+
+
+# DDNS related functions
+
+# ommit zone statement
+# nsupdate  will attempt determine the correct zone to update based on the rest of the input
+send_command () {
+
+  local command="$1"
+  $SNF_NETWORK_LOG $0 "* $command"
+  nsupdate -k $KEYFILE > /dev/null << EOF
+  server $SERVER
+  $command
+  send
+EOF
+
+}
+
+
+update_arecord () {
+
+  local action=$1
+  local command=
+  if [ -n "$IP" ]; then
+    command="update $action $GANETI_INSTANCE_NAME.$FZONE $TTL A $IP"
+    send_command "$command"
+  fi
+
+}
+
+
+update_aaaarecord () {
+
+  local action=$1
+  local command=
+  if [ -n "$EUI64" ]; then
+    command="update $action $GANETI_INSTANCE_NAME.$FZONE $TTL AAAA $EUI64"
+    send_command "$command"
+  fi
+
+}
+
+
+update_ptrrecord () {
+
+  local action=$1
+  local command=
+  if [ -n "$IP" ]; then
+    command="update $action $RLPART.$RZONE. $TTL PTR $GANETI_INSTANCE_NAME.$FZONE"
+    send_command "$command"
+  fi
+
+}
+
+update_ptr6record () {
+
+  local action=$1
+  local command=
+  if [ -n "$EUI64" ]; then
+    command="update $action $R6LPART$R6ZONE. $TTL PTR $GANETI_INSTANCE_NAME.$FZONE"
+    send_command "$command"
+  fi
+
+}
+
+update_all () {
+
+  local action=$1
+  $SNF_NETWORK_LOG $0 "Update ($action) dns for $GANETI_INSTANCE_NAME $IP $EUI64"
+  update_arecord $action
+  update_aaaarecord $action
+  update_ptrrecord $action
+  update_ptr6record $action
+
+}
+
+
+# first argument is an eui64 (IPv6)
+# sets GLOBAL args R6REC, R6ZONE, R6LPART
+# lets assume eui64=2001:648:2ffc:1::1
+# the following commands produce:
+# R6REC=1.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.1.0.0.0.c.f.f.2.8.4.6.0.1.0.0.2.ip6.arpa
+# R6ZONE=1.0.0.0.c.f.f.2.8.4.6.0.1.0.0.2.ip6.arpa
+# R6LPART=1.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.
+get_rev6_info () {
+
+  local eui64=$1
+  if [ -z "$eui64" ]; then
+    R6REC= ; R6ZONE= ; R6LPART= ;
+  else
+    R6REC=$(host $eui64 | egrep -o '([[:alnum:]]\.){32}ip6.arpa' )
+    R6ZONE=$(echo $R6REC | awk -F. 'BEGIN{rpart="";} { for (i=32;i>16;i=i-1) rpart=$i "." rpart; } END{print rpart "ip6.arpa";}')
+    R6LPART=$(echo $R6REC | awk -F. 'BEGIN{lpart="";} { for (i=16;i>0;i=i-1) lpart=$i "." lpart; } END{print lpart;}')
+  fi
+
+}
+
+
+# first argument is an ipv4
+# sets args RZONE, RLPART
+# lets assume IP=203.0.113.1
+# RZONE="113.0.203.in-add.arpa"
+# RLPART="1"
+get_rev4_info () {
+
+  local ip=$1
+  if [ -z "$ip" ]; then
+    RZONE= ; RLPART= ;
+  else
+    OLDIFS=$IFS
+    IFS=". "
+    set -- $ip
+    a=$1 ; b=$2; c=$3; d=$4;
+    IFS=$OLDIFS
+    RZONE="$c.$b.$a.in-addr.arpa"
+    RLPART="$d"
+  fi
+
+}
+
+get_ebtables_chains () {
+
+  local iface=$1
+  FROM=FROM${iface^^}
+  TO=TO${iface^^}
+
+}
+
+get_instance_info () {
+
+  if [ -z "$GANETI_INSTANCE_NAME" -a -n "$INSTANCE" ]; then
+    GANETI_INSTANCE_NAME=$INSTANCE
+  fi
+
+}
+
+get_mode_info () {
+
+  local iface=$1
+  local mode=$2
+  local link=$3
+
+  TABLE=
+  INDEV=
+
+  if [ "$mode" = "routed" ]; then
+    TABLE=$link
+    INDEV=$iface
+  elif [ "$mode" = "bridged" ]; then
+    INDEV=$link
+  fi
+
+}
+
+
+# Use environment variables to calculate desired info
+# IP, MAC, LINK, TABLE, BRIDGE,
+# NETWORK_SUBNET, NETWORK_GATEWAY, NETWORK_SUBNET6, NETWORK_GATEWAY6
+function get_info {
+
+  $SNF_NETWORK_LOG $0 "Getting info for $INTERFACE of $GANETI_INSTANCE_NAME"
+  get_instance_info
+  get_mode_info $INTERFACE $MODE $LINK
+  get_ebtables_chains $INTERFACE
+  get_rev4_info $IP
+  get_eui64 $MAC $NETWORK_SUBNET6
+  get_rev6_info $EUI64
+  get_uplink $TABLE
+
+}
+
+
+# Query nameserver for entries related to the specific instance
+# An example output is the following:
+# www.google.com has address 173.194.113.114
+# www.google.com has address 173.194.113.115
+# www.google.com has address 173.194.113.116
+# www.google.com has address 173.194.113.112
+# www.google.com has address 173.194.113.113
+# www.google.com has IPv6 address 2a00:1450:4001:80b::1012
+query_dns () {
+
+  HOSTQ="host -s -R 3 -W 3"
+  HOST_IP_ALL=$($HOSTQ $GANETI_INSTANCE_NAME.$FZONE $SERVER | sed -n 's/.*has address //p')
+  HOST_IP6_ALL=$($HOSTQ $GANETI_INSTANCE_NAME.$FZONE $SERVER | sed -n 's/.*has IPv6 address //p')
 
 }
