@@ -19,13 +19,14 @@ if [ "$MODE" = "routed" ]; then
   TABLE=$LINK
   ip link set $INTERFACE addr $TAP_CONSTANT_MAC up
   INDEV=$INTERFACE
-  DROPDHCPREQCMD="iptables -A FORWARD -i $INTERFACE -p udp --dport 67 -j DROP"
+  # DROPDHCPREQCMD="iptables -A FORWARD -i $INTERFACE -p udp --dport 67 -j DROP"
 elif [ "$MODE" = "bridged" ]; then
   ip link set $INTERFACE up
   brctl addif $BRIDGE $INTERFACE
   INDEV=$BRIDGE
-  try init_ebtables
-  DROPDHCPREQCMD="ebtables -A $FROM -p ipv4 --ip-protocol udp --ip-destination-port 67 -j DROP"
+  # nfdhcpd creates responses with src mac the mac of indec
+  INDEV_MAC=$(cat /sys/class/net/$INDEV/address)
+  # DROPDHCPREQCMD="runlocked $RUNLOCKED_OPTS ebtables -A $FROM -p ipv4 --ip-protocol udp --ip-destination-port 67 -j DROP"
 fi
 
 
@@ -38,10 +39,11 @@ for tag in $NETWORK_TAGS; do
   ;;
   $NFDHCPD_TAG)
     # Drop unicast BOOTP/DHCP packets
-    $DROPDHCPREQCMD
+    # $DROPDHCPREQCMD
     try setup_nfdhcpd
   ;;
   $MAC_FILTERED_TAG)
+    try init_ebtables
     try setup_ebtables
   ;;
   $MASQ_TAG)
@@ -49,5 +51,9 @@ for tag in $NETWORK_TAGS; do
   ;;
   esac
 done
+
+if [ -x "$IFUP_EXTRA_SCRIPT" ]; then
+  exec $IFUP_EXTRA_SCRIPT "$@"
+fi
 
 exit 0
