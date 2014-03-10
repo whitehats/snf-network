@@ -1,1 +1,4 @@
-interfaces
+examples/interfaces
+examples/vmrouter.ifup
+examples/vmrouter.ifdown
+examples/prv-net-helper

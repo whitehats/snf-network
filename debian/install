@@ -12,3 +12,5 @@ snf-network-dnshook usr/bin
 common.sh usr/lib/snf-network
 
 runlocked usr/bin
+
+snf-network.ferm etc/ferm

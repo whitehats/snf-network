@@ -10,3 +10,4 @@ etc/ganeti/hooks/instance-failover-post.d
 etc/ganeti/hooks/instance-migrate-post.d
 usr/lib/snf-network
 etc/xen/scripts
+etc/ferm
