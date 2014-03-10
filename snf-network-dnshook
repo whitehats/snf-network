@@ -1,4 +1,37 @@
 #!/bin/bash
+#
+# Copyright 2014 GRNET S.A. All rights reserved.
+#
+# Redistribution and use in source and binary forms, with or
+# without modification, are permitted provided that the following
+# conditions are met:
+#
+#   1. Redistributions of source code must retain the above
+#      copyright notice, this list of conditions and the following
+#      disclaimer.
+#
+#   2. Redistributions in binary form must reproduce the above
+#      copyright notice, this list of conditions and the following
+#      disclaimer in the documentation and/or other materials
+#      provided with the distribution.
+#
+# THIS SOFTWARE IS PROVIDED BY GRNET S.A. ``AS IS'' AND ANY EXPRESS
+# OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+# WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR
+# PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL GRNET S.A OR
+# CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
+# SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
+# LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF
+# USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED
+# AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
+# LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN
+# ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+# POSSIBILITY OF SUCH DAMAGE.
+#
+# The views and conclusions contained in the software and
+# documentation are those of the authors and should not be
+# interpreted as representing official policies, either expressed
+# or implied, of GRNET S.A.
 
 # Configuration Fallbacks. All can(must for some of them) be overwritten by /etc/default/snf-network
 TTL=300
@@ -28,7 +61,7 @@ update_dns () {
   elif [ "x$GANETI_OP_CODE" = "xOP_INSTANCE_RENAME" ]; then
     update_all delete
     # Let's override a variable and add ourselves
-    GANETI_INSTANCE_NAME=$GANETI_INSTANCE_NEW_NAME
+    INSTANCE=$GANETI_INSTANCE_NEW_NAME
     update_all add
   elif [ "x$GANETI_OP_CODE" = "xOP_INSTANCE_STARTUP" ]; then
     update_all add
@@ -42,59 +75,21 @@ update_dns () {
 
 }
 
-
-# Query nameserver for entries related to the specific instance
-# An example output is the following:
-# www.google.com has address 173.194.113.114
-# www.google.com has address 173.194.113.115
-# www.google.com has address 173.194.113.116
-# www.google.com has address 173.194.113.112
-# www.google.com has address 173.194.113.113
-# www.google.com has IPv6 address 2a00:1450:4001:80b::1012
-query_dns () {
-
-  HOSTQ="host -s -R 3 -W 3"
-  HOST_IP_ALL=$($HOSTQ $GANETI_INSTANCE_NAME.$FZONE $SERVER | sed -n 's/.*has address //p')
-  HOST_IP6_ALL=$($HOSTQ $GANETI_INSTANCE_NAME.$FZONE $SERVER | sed -n 's/.*has IPv6 address //p')
-
-}
-
-
-# Reset all entries related to the specific instance
-# This should be invoced only during instance modification
-# because we do not know which nics have been modify
-reset_dns () {
-
-  if [ "x$GANETI_OP_CODE" = "xOP_INSTANCE_SET_PARAMS" ]; then
-    query_dns
-    # This should remove the A, AAAA, CNAME entries
-    send_command "update delete $GANETI_INSTANCE_NAME.$FZONE"
-    for ip in $HOST_IP_ALL; do
-      get_rev4_info $ip
-      # This should remove the IPv4 reverse entry
-      send_command "update delete $RLPART.$RZONE"
-    done
-    for ip6 in $HOST_IP6_ALL; do
-      get_rev6_info $ip6
-      # This should remove the IPv6 reverse entry
-      send_command "update delete $R6LPART$R6ZONE."
-    done
-  fi
-
-}
-
-
 # Main starts here
 
+INSTANCE=$GANETI_INSTANCE_NAME
 
 # Exit if we do not have instance name.
 # It should be exported to hooks for instance related opcodes.
-if [ -z "$GANETI_INSTANCE_NAME" ]; then
+if [ -z "$INSTANCE" ]; then
   exit 0
 fi
 
 # This runs only for instance modification
-reset_dns
+if [ "x$GANETI_OP_CODE" = "xOP_INSTANCE_SET_PARAMS" ]; then
+  query_dns
+  reset_dns
+fi
 
 # If GANETI_INSTANCE_NIC_COUNT is not set then nothing happens
 FIRST=0
@@ -120,7 +115,6 @@ for idx in $(seq $FIRST $LAST); do
     $DNS_TAG)
 
       get_info
-      $SNF_NETWORK_LOG $0 "update dns for $GANETI_INSTANCE_NAME $IP $EUI64"
       update_dns
 
       ;;
