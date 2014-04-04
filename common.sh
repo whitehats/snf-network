@@ -41,10 +41,39 @@ function try {
 
 }
 
+function clear_log {
+
+  rm -f $STATE_DIR/$INTERFACE
+
+}
+
+function init_log {
+
+    cat > $STATE_DIR/$INTERFACE <<EOF
+INSTANCE=$INSTANCE
+IP=$IP
+EUI64=$EUI64
+LINK=$LINK
+NETWORK_NAME=$NETWORK_NAME
+INTERFACE_NAME=$INTERFACE_NAME
+NETWORK_TAGS="$NETWORK_TAGS"
+TAGS="$TAGS"
+EOF
+
+}
+
+function log {
+
+  echo $@ >> $STATE_DIR/$INTERFACE
+
+}
+
 function clear_routed_setup_ipv4 {
 
  arptables -D OUTPUT -o $INTERFACE --opcode request -j mangle
+ arptables -D OUTPUT -o $INTERFACE --opcode request -j mangle -m comment --comment "snf-network_proxy-arp"
  while ip rule del dev $INTERFACE; do :; done
+ # This is needed for older snf-network versions
  iptables -D FORWARD -i $INTERFACE -p udp --dport 67 -j DROP
 
 }
@@ -57,7 +86,7 @@ function clear_routed_setup_ipv6 {
 
 function delete_neighbor_proxy {
 
-  if [ -z "$EUI64" -z -o "$UPLINK6" ]; then
+  if [ -z "$EUI64" -o -z "$UPLINK6" ]; then
     return
   fi
 
@@ -70,7 +99,9 @@ function clear_routed_setup_firewall {
 
   for oldchain in protected unprotected limited; do
     iptables  -D FORWARD -o $INTERFACE -j $oldchain
+    iptables  -D FORWARD -o $INTERFACE -j $oldchain -m comment --comment "snf-network_firewall"
     ip6tables -D FORWARD -o $INTERFACE -j $oldchain
+    ip6tables -D FORWARD -o $INTERFACE -j $oldchain -m comment --comment "snf-network_firewall"
   done
 
 }
@@ -78,8 +109,10 @@ function clear_routed_setup_firewall {
 function clear_bridged_setup_firewall {
 
   for oldchain in protected unprotected limited; do
-		iptables  -D FORWARD -m physdev --physdev-out $INTERFACE -j $chain
-		ip6tables -D FORWARD -m physdev --physdev-out $INTERFACE -j $chain
+		iptables  -D FORWARD -m physdev --physdev-out $INTERFACE -j $oldchain
+		iptables  -D FORWARD -m physdev --physdev-out $INTERFACE -j $oldchain -m comment --comment "snf-network_firewall"
+		ip6tables -D FORWARD -m physdev --physdev-out $INTERFACE -j $oldchain
+		ip6tables -D FORWARD -m physdev --physdev-out $INTERFACE -j $oldchain -m comment --comment "snf-network_firewall"
   done
 
 }
@@ -111,7 +144,7 @@ function routed_setup_ipv4 {
   fi
 
 	# mangle ARPs to come from the gw's IP
-	arptables -A OUTPUT -o $INTERFACE --opcode request -j mangle --mangle-ip-s    "$NETWORK_GATEWAY"
+	log arptables -A OUTPUT -o $INTERFACE --opcode request -j mangle --mangle-ip-s "$NETWORK_GATEWAY" -m comment --comment "snf-network_proxy-arp"
 
 	# route interface to the proper routing table
 	ip rule add dev $INTERFACE table $TABLE
@@ -183,8 +216,8 @@ function routed_setup_firewall {
 	done
 
 	if [ "x$chain" != "x" ]; then
-		iptables  -A FORWARD -o $INTERFACE -j $chain
-		ip6tables -A FORWARD -o $INTERFACE -j $chain
+		log iptables  -A FORWARD -o $INTERFACE -j $chain -m comment --comment "snf-network_firewall"
+		log ip6tables -A FORWARD -o $INTERFACE -j $chain -m comment --comment "snf-network_firewall"
 	fi
 }
 
@@ -212,21 +245,21 @@ function bridged_setup_firewall {
 	done
 
 	if [ "x$chain" != "x" ]; then
-		iptables  -I FORWARD -m physdev --physdev-out $INTERFACE -j $chain
-		ip6tables -I FORWARD -m physdev --physdev-out $INTERFACE -j $chain
+		log iptables  -I FORWARD -m physdev --physdev-out $INTERFACE -j $chain -m comment --comment "snf-network_firewall"
+		log ip6tables -I FORWARD -m physdev --physdev-out $INTERFACE -j $chain -m comment --comment "snf-network_firewall"
 	fi
 }
 function init_ebtables {
 
-  runlocked $RUNLOCKED_OPTS ebtables -N $FROM -P RETURN
-  runlocked $RUNLOCKED_OPTS ebtables -A FORWARD -i $INTERFACE -j $FROM
+  log runlocked $RUNLOCKED_OPTS ebtables -N $FROM -P RETURN
+  log runlocked $RUNLOCKED_OPTS ebtables -A FORWARD -i $INTERFACE -j $FROM
   # This is needed for multicast packets
-  runlocked $RUNLOCKED_OPTS ebtables -A INPUT -i $INTERFACE -j $FROM
+  log runlocked $RUNLOCKED_OPTS ebtables -A INPUT -i $INTERFACE -j $FROM
 
-  runlocked $RUNLOCKED_OPTS ebtables -N $TO -P RETURN
-  runlocked $RUNLOCKED_OPTS ebtables -A FORWARD -o $INTERFACE -j $TO
+  log runlocked $RUNLOCKED_OPTS ebtables -N $TO -P RETURN
+  log runlocked $RUNLOCKED_OPTS ebtables -A FORWARD -o $INTERFACE -j $TO
   # This is needed for multicast packets
-  runlocked $RUNLOCKED_OPTS ebtables -A OUTPUT -o $INTERFACE -j $TO
+  log runlocked $RUNLOCKED_OPTS ebtables -A OUTPUT -o $INTERFACE -j $TO
 
 }
 
@@ -237,14 +270,14 @@ function setup_ebtables {
   if [ -n "$IP" ]; then
     :; # runlocked $RUNLOCKED_OPTS ebtables -A $FROM --ip-source \! $IP -p ipv4 -j DROP
   fi
-  runlocked $RUNLOCKED_OPTS ebtables -A $FROM -s \! $MAC -j DROP
+  log runlocked $RUNLOCKED_OPTS ebtables -A $FROM -s \! $MAC -j DROP
   # accept dhcp responses from host (nfdhcpd)
   # this is actually not needed because nfdhcpd opens a socket and binds is with
   # tap interface so dhcp response does not go through bridge
   # INDEV_MAC=$(cat /sys/class/net/$INDEV/address)
   # runlocked $RUNLOCKED_OPTS ebtables -A $TO -s $INDEV_MAC -p ipv4 --ip-protocol=udp  --ip-destination-port=68 -j ACCEPT
   # allow only packets from the same mac prefix
-  runlocked $RUNLOCKED_OPTS ebtables -A $TO -s \! $MAC/$MAC_MASK -j DROP
+  log runlocked $RUNLOCKED_OPTS ebtables -A $TO -s \! $MAC/$MAC_MASK -j DROP
 }
 
 function setup_masq {
