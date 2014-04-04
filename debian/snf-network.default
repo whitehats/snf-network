@@ -1,3 +1,4 @@
+STATE_DIR=/var/lib/snf-network
 SNF_NETWORK_LOG=/usr/bin/snf-network-log
 LOGFILE=/var/log/ganeti/snf-network.log
 IFUP_EXTRA_SCRIPT=/etc/ganeti/ifup-extra
