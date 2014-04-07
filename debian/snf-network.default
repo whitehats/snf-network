@@ -1,15 +1,22 @@
+# Dir to backup each interface configuration
 STATE_DIR=/var/lib/snf-network
-SNF_NETWORK_LOG=/usr/bin/snf-network-log
+# File to log snf-network related actions
 LOGFILE=/var/log/ganeti/snf-network.log
+# Extra script provided by the admin for added/custom functionality
 IFUP_EXTRA_SCRIPT=/etc/ganeti/ifup-extra
 
+# This mask is used in private-filtered networks
 MAC_MASK=ff:ff:f0:00:00:00
 
 TAP_CONSTANT_MAC=cc:47:52:4e:45:54 # GRNET in hex :-)
 MAC2EUI64=/usr/bin/mac2eui64
+# The dir to store nfdhcpd binding files
 NFDHCPD_STATE_DIR=/var/lib/nfdhcpd
+# The dir to store NIC information in case of Xen
 GANETI_NIC_DIR=/var/run/ganeti/xen-hypervisor/nic
 
+
+# All supported network tags
 MAC_FILTERED_TAG=private-filtered
 NFDHCPD_TAG=nfdhcpd
 IP_LESS_ROUTED_TAG=ip-less-routed
