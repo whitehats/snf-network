@@ -8,14 +8,14 @@ Standards-Version: 3.9.1
 Package: snf-network
 Architecture: all
 Replaces: snf-cyclades-gtools, nfdhcpd
-Depends: ${misc:Depends}, ${python:Depends}, python-scapy(>= 2.0.1-1),
-         python-daemon(>=1.5.2-1), python-pyinotify(>=0.7.1-1),
-         python-ipy(>=1:0.62-1), nfqueue-bindings-python(>=0.3-2),
-         python-cap-ng(>=0.6.0-1), python(>=2.4), python-configobj(>= 4.5.2-1),
-         iptables, arptables, ebtables, tcpdump, nfdhcpd(>=0.7-1),
-         vzctl, iputils-arping
+Depends: ${misc:Depends}, ${python:Depends},
+         iptables, arptables, ebtables, nfdhcpd, vzctl, dnsutils
 Description: Networking support for VMs inside the Ganeti Cluster.
- This package provides the following utilities:
-  * vlan handling for GRNET's specific IP-less routing and proxy ARP
-  * kvm-vif-bridge script for handling tap interfaces of VMs
-  * various configuration files to support private LANs and IPs
+ This package is responsible for setting up the networking environment
+ of each VM based on the requested setup (routed, bridge, filtered, etc.).
+ It practically gets the exported info from Ganeti and provides:
+  * ifup scripts (for KVM and Xen)
+  * ifdown scripts (for KVM)
+  * hooks for updating external DDNS setup
+  * mechanism for executing custom admin scripts
+  * mechanism to create binding files for nfdhcpd
