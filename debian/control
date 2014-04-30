@@ -9,7 +9,8 @@ Package: snf-network
 Architecture: all
 Replaces: snf-cyclades-gtools, nfdhcpd
 Depends: ${misc:Depends}, ${python:Depends},
-         iptables, arptables, ebtables, nfdhcpd, vzctl, dnsutils
+         iptables, arptables, ebtables, vzctl, dnsutils
+Suggests: nfdhcpd
 Description: Networking support for VMs inside the Ganeti Cluster.
  This package is responsible for setting up the networking environment
  of each VM based on the requested setup (routed, bridge, filtered, etc.).
