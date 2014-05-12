@@ -37,7 +37,7 @@ source /etc/default/snf-network
 
 : ${STATE_DIR:=/var/lib/snf-network}
 : ${LOGFILE:=/var/log/ganeti/snf-network.log}
-: ${IFUP_EXTRA_SCRIPT:=/etc/ganeti/ifup-extra}
+
 
 function try {
 
@@ -83,16 +83,19 @@ function log {
 function clear_routed_setup_ipv4 {
 
  arptables -D OUTPUT -o $INTERFACE --opcode request -j mangle
- arptables -D OUTPUT -o $INTERFACE --opcode request -j mangle -m comment --comment "snf-network_proxy-arp"
  while ip rule del dev $INTERFACE; do :; done
  # This is needed for older snf-network versions
  iptables -D FORWARD -i $INTERFACE -p udp --dport 67 -j DROP
+ # This is needed because we do not know the IP of the stale rule.
+ # Additionally we cannot refer to line numbers due to possible race.
+ iptables -t filter -S FORWARD | grep -w $INTERFACE | sed -e 's/-A/-D/' | xargs -L1 iptables
 
 }
 
 function clear_routed_setup_ipv6 {
 
  while ip -6 rule del dev $INTERFACE; do :; done
+ ip6tables -t filter -S FORWARD | grep -w $INTERFACE | sed -e 's/-A/-D/' | xargs -L1 ip6tables
 
 }
 
@@ -102,7 +105,7 @@ function delete_neighbor_proxy {
     return
   fi
 
-  log "ip -6 neigh del proxy $EUI64 dev $UPLINK6"
+  log "* Deleting Neighbor Proxy for $EUI64 on $UPLINK6"
   ip -6 neigh del proxy $EUI64 dev $UPLINK6
 
 }
@@ -156,13 +159,16 @@ function routed_setup_ipv4 {
   fi
 
 	# mangle ARPs to come from the gw's IP
-	save arptables -A OUTPUT -o $INTERFACE --opcode request -j mangle --mangle-ip-s "$NETWORK_GATEWAY" -m comment --comment "snf-network_proxy-arp"
+	save arptables -A OUTPUT -o $INTERFACE --opcode request -j mangle --mangle-ip-s "$NETWORK_GATEWAY"
 
 	# route interface to the proper routing table
-	ip rule add dev $INTERFACE table $TABLE
+	save ip rule add dev $INTERFACE table $TABLE
 
 	# static route mapping IP -> INTERFACE
-	ip route replace $IP proto static dev $INTERFACE table $TABLE
+	save ip route replace $IP proto static dev $INTERFACE table $TABLE
+
+  # Do not allow packets with different source IP
+  save iptables -A FORWARD -i $INTERFACE ! -s $IP -j DROP -m comment --comment "snf-network_routed"
 
 	# Enable proxy ARP
 	echo 1 > /proc/sys/net/ipv4/conf/$INTERFACE/proxy_arp
@@ -177,8 +183,8 @@ function send_garp {
 
   # Send GARP from host to upstream router
   echo 1 > /proc/sys/net/ipv4/ip_nonlocal_bind
-  log "arpsend -U -i $IP -c1 $UPLINK"
-  arpsend -U -i $IP -c1 $UPLINK
+  log "* Sending GARP for $IP on $UPLINK"
+  save arpsend -U -i $IP -c1 $UPLINK
   echo 0 > /proc/sys/net/ipv4/ip_nonlocal_bind
 
 }
@@ -190,17 +196,19 @@ function routed_setup_ipv6 {
     return
   fi
 	# Add a routing entry for the eui-64
-	ip -6 rule add dev $INTERFACE table $TABLE
-	ip -6 ro replace $EUI64/128 dev $INTERFACE table $TABLE
-	ip -6 neigh add proxy $EUI64 dev $UPLINK6
+	save ip -6 rule add dev $INTERFACE table $TABLE
+	save ip -6 ro replace $EUI64/128 dev $INTERFACE table $TABLE
+	save ip -6 neigh add proxy $EUI64 dev $UPLINK6
 
 	# disable proxy NDP since we're handling this on userspace
 	# this should be the default, but better safe than sorry
 	echo 0 > /proc/sys/net/ipv6/conf/$INTERFACE/proxy_ndp
 
+
+  save ip6tables -A FORWARD -i $INTERFACE ! -s $EUI64 -j DROP -m comment --comment "snf-network_routed"
   # Send Unsolicited Neighbor Advertisement
-  log "ndsend $EUI64 $UPLINK6"
-  ndsend $EUI64 $UPLINK6
+  log "* Sending Unsolicited NA for $EUI64 on $UPLINK6"
+  save ndsend $EUI64 $UPLINK6
 
 }
 
@@ -328,8 +336,11 @@ function get_uplink {
   local table=$1
   UPLINK=$(ip route list table $table | grep "default via" | awk '{print $5}')
   UPLINK6=$(ip -6 route list table $table | grep "default via" | awk '{print $5}')
-  if [ -n "$UPLINK" -o -n "$UPLINK6" ]; then
-    log "* uplink($table) -> $UPLINK, $UPLINK6"
+  if [ -n "$UPLINK" ]; then
+    log "* uplink($table) -> $UPLINK"
+  fi
+  if [ -n "$UPLINK6" ]; then
+    log "* uplink6($table) -> $UPLINK6"
   fi
 
 }
@@ -497,7 +508,7 @@ get_mode_info () {
     TABLE=
     INDEV=$link
   fi
-  log "* $mode @ $link ($INDEV)"
+  log "* $iface: $mode @ $link"
 
 }
 
