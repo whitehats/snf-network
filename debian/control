@@ -11,6 +11,7 @@ Replaces: snf-cyclades-gtools, nfdhcpd
 Depends: ${misc:Depends}, ${python:Depends},
          iptables, arptables, ebtables, vzctl, dnsutils
 Suggests: nfdhcpd
+Recommends: heimdal-clients, kstart, bind9utils
 Description: Networking support for VMs inside the Ganeti Cluster.
  This package is responsible for setting up the networking environment
  of each VM based on the requested setup (routed, bridge, filtered, etc.).
