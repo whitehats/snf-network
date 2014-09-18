@@ -28,6 +28,15 @@ DNS_TAG=public
 #RUNLOCKED_OPTS="--id 10001 --retry-sec 0.5"
 
 # NS options needed by nsupdate
+# To enable this feature the SERVER and FZONE must be defined
+
+# The authentication method to be used for dynamic DNS updates
+# Valid methods are:
+#  - plain (nsupdate)
+#  - bind9 (nsupdate -k KEYFILE)
+#  - kerberos (KR5BCCNAME=KERBEROS_TICKET nsupdate -g)
+AUTHENTICATION_METHOD=bind9
+
 # Name server IP/FQDN
 SERVER=
 # zone for the vms
