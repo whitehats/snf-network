@@ -1,3 +1,9 @@
+snf-network (0.16~rc2-1~wheezy) wheezy; urgency=low
+
+  * Support Kerberos authentication method for dynamic DNS updates
+
+ -- Ilias Tsitsimpis <iliastsi@grnet.gr>  Mon, 10 Nov 2014 17:01:18 +0200
+
 snf-network (0.16~rc1-1~wheezy) wheezy; urgency=low
 
   * Rename scripts
@@ -15,4 +21,5 @@ snf-network (0.14.0-1) unstable; urgency=low
     (kvm-vif-bridge, mac2eui64, clear-proxy-ndp) 
 
  -- Dimitris Aragiorgis <dimara@grnet.gr>  Fri, 24 May 2013 18:05:14 +0300
+
 
