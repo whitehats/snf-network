@@ -371,8 +371,20 @@ get_eui64 () {
 send_command () {
 
   local command="$1"
+  if [ "$AUTHENTICATION_METHOD" == "bind9" ]; then
+    nsupdate_command="nsupdate -k $KEYFILE"
+  elif [ "$AUTHENTICATION_METHOD" == "kerberos" ]; then
+    nsupdate_command="KR5BCCNAME=$KERBEROS_TICKET nsupdate -g"
+    k5start -k $KERBEROS_TICKET -u $KERBEROS_PRINCIPAL -f $KERBEROS_KEYTAB $KERBEROS_KSTART_ARGS
+  elif [ "$AUTHENTICATION_METHOD" == "plain" ]; then
+    nsupdate_command="nsupdate"
+  else
+    log "* Invalid authentication method: $AUTHENTICATION_METHOD."
+    return
+  fi
+  log "* $nsupdate_command"
   log "* $command"
-  nsupdate -k $KEYFILE > /dev/null << EOF
+  $nsupdate_command > /dev/null << EOF
   server $SERVER
   $command
   send

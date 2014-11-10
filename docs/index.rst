@@ -216,19 +216,63 @@ neighbor proxy entry related to an instance's IPv6 on the source node.
 Otherwise the traffic would continue to go via the source node since
 there would be two nodes proxy-ing this IP.
 
+.. _snf-network-dnshook:
 
 snf-network-dnshook
 """""""""""""""""""
 
-Installed under `instance-stop-post.d`, `instance-rename-post.d` and
-`instance-remove-post.d` hook dirs.
+Installed under `instance-add-post.d`, `instance-rename-post.d`,
+`instance-remove-post.d` and `instance-modify-post.d` hook dirs.
 
-This hook updates an external `DDNS <https://wiki.debian.org/DDNS>`_
-setup via ``nsupdate``. Since we add/remove entries during ifup/ifdown
-scripts, we use this only during instance remove/shutdown/rename. It
-does not rely on exported environment but it queries first the DNS
-server to obtain current entries and then it invokes the necessary
-commands to remove them (and the relevant reverse ones too).
+Currently it supports dynamic updates against a BIND server or
+secure Microsoft DNS (Active Directory) by using the `nsupdate`
+command (found in `dnsutils` debian package). The method to be used
+is defined in AUTHENTICATION_METHOD setting. The available methods
+are:
+
+ - plain (nsupdate)
+ - bind9 (nsupdate -k)
+ - kerberos (nsupdate -g)
+
+For backwards compatibility we assume `bind9` if the above setting is missing.
+To disable DDNS updates unset the AUTHENTICATION_METHOD variable
+in `/etc/defaults/snf-network`.
+
+If DDNS updates are enabled, the admin must set the SERVER (the IP of
+the DNS server) and FZONE (the domain of the instances) variables found
+in `/etc/default/snf-network`. Please note that currenlty only one
+domain is supported for the instances.
+
+In case of ``bind9`` method (e.g `DDNS <https://wiki.debian.org/DDNS>`_),
+the KEYFILE variable in `/etc/default/snf-network` must point to
+the `.private` file created by ``dnssec-keygen``.
+
+In case of ``kerberos`` method (e.g. against Active Directory),
+snf-network uses the -g option of nsupdate (GSS-TSIG mode). Prior to that,
+it uses "k5start -H" to ensure there is a happy ticket (see
+KERBEROS_TICKET default option). In case the ticket is invalid, it will
+use a keytab containing the password and try obtain a ticket
+automatically (password-less). The keytab with the corresponding service
+principal must already exist and both should be mentioned in the
+settings.
+
+To add a valid keytab one can use:
+
+.. code-block:: console
+
+ ktutil -v add -V 1 -e aes256-cts -p SYNNEFO.NSUPDATE
+
+``kstart`` and ``heimdal-clients`` packages are required in case
+kerberos authentication is desired.
+
+In general this hook relies on the exported enviroment and according to
+the opcode it updates the external DNS server.
+
+Upon instance modification it first queries the DNS server to obtain
+current entries, then removes them (along with their reverse ones) and
+then re-adds any entries needed. This is done, because currently the
+environment exported by Ganeti includes the whole instance's state and
+does not explicitly mention the changes made.
 
 
 .. _setups:
@@ -305,12 +349,8 @@ dns
 snf-network can update an external `DDNS
 <https://wiki.debian.org/DDNS>`_ server. If the `dns` network tag is
 found, `snf-network-dnshook` will use `nsupdate` and add/remove entries
-related to the interface that is being managed. To enable it the admin
-must set the SERVER (the IP of the DNS server), FZONE (the domain of the
-instances), KEYFILE (the .private file created by dnssec-keygen)
-variables found in `/etc/default/snf-network`. Please note that
-currenlty only one domain is supported for the instances.
-
+related to the interface that is being managed. For more details see
+`snf-network-dnshook`_.
 
 nfdhcpd
 ^^^^^^^
@@ -397,10 +437,26 @@ one of them.
    <setups>`)
  - ``RUNLOCKED_OPTS`` options for runlocked helper script used as a
    wrapper for ebtables
- - ``SERVER`` the IP/FQDN of the name server
- - ``FZONE`` the domain that the VMs will reside in
+ - ``AUTHENTICATION_METHOD`` is the method to be used for dynamic DNS
+   updates. The valid methods are: plain (nsupdate), bind9 (nsupdate
+   -k), kerberos (nsupdate -g). To disable DDNS updates just unset this
+   setting.
+ - ``SERVER`` the IP/FQDN of the name server (required for dynamic DNS
+   updates)
+ - ``FZONE`` the domain that the VMs will reside in (required for
+   dynamic DNS updates)
  - ``KEYFILE`` path to file used with -k option of nsupdate
  - ``TTL`` defines the duration in seconds that a DNS record may be cached
+   (defaults to 300)
+ - ``KERBEROS_PRINCIPAL`` is the kerberos principal (required for
+   kerberos authentication)
+ - ``KERBEROS_KEYTAB`` is the kerberos keytab (defaults to
+   /etc/krb5.keytab)
+ - ``KERBEROS_KSTART_ARGS`` are the options to pass to kstart (default
+   to "-H 1 -l 1h")
+ - ``KERBEROS_TICKET`` is the path to keep the ticket obtained by kstart
+   (defaults to /var/lib/snf-network/snf-network-kerberos.tkt)
+
 
 
 .. toctree::

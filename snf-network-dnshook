@@ -43,37 +43,36 @@ SERVER=""
 FZONE=""
 # the file with dns authorization keys
 KEYFILE=""
-MAC2EUI64="/usr/bin/mac2eui64"
+
+# kerberos authentication settings
+# Will be used with kstart and ktutil
+KERBEROS_PRINCIPAL=
+KERBEROS_KEYTAB=/etc/krb5.keytab
+KERBEROS_KSTART_ARGS="-H 1 -l 1h"
+KERBEROS_TICKET=/var/lib/snf-network/snf-network-kerberos.tkt
+
+# Default authentication method
+AUTHENTICATION_METHOD=bind9
 
 source /etc/default/snf-network
 source /usr/lib/snf-network/common.sh
 
-if [ -z "$SERVER" -o -z "$FZONE" -o ! -e "$KEYFILE" ]; then
+if [ -z "$SERVER" -o -z "$FZONE" ]; then
+  log "SERVER and FZONE not defined! Aborting.."
   exit 0
 fi
 
-update_dns () {
+if [ "$AUTHENTICATION_METHOD" == "bind9" -a -e "$KEYFILE" ]; then
+  log "Will use $KEYFILE keyfile for nsupdate (bind9 method)."
+elif [ "$AUTHENTICATION_METHOD" == "kerberos" -a -n "$KERBEROS_PRINCIPAL" ]; then
+  log "Will use $KERBEROS_PRINCIPAL principal for nsupdate (kerberos method)."
+elif [ "$AUTHENTICATION_METHOD" == "plain" ]; then
+  log "Will use no authentication (plain method)"
+else
+  log "No AUTHENTICATION_METHOD defined! Aborting.."
+  exit 0
+fi
 
-  if [ "x$GANETI_OP_CODE" = "xOP_INSTANCE_CREATE" ]; then
-    update_all add
-  elif [ "x$GANETI_OP_CODE" = "xOP_INSTANCE_REMOVE" ]; then
-    update_all delete
-  elif [ "x$GANETI_OP_CODE" = "xOP_INSTANCE_RENAME" ]; then
-    update_all delete
-    # Let's override a variable and add ourselves
-    INSTANCE=$GANETI_INSTANCE_NEW_NAME
-    update_all add
-  elif [ "x$GANETI_OP_CODE" = "xOP_INSTANCE_STARTUP" ]; then
-    update_all add
-  elif [ "x$GANETI_OP_CODE" = "xOP_INSTANCE_SHUTDOWN" ]; then
-    update_all delete
-  elif [ "x$GANETI_OP_CODE" = "xOP_INSTANCE_REBOOT" ]; then
-    update_all add
-  elif [ "x$GANETI_OP_CODE" = "xOP_INSTANCE_SET_PARAMS" ]; then
-    update_all add
-  fi
-
-}
 
 # Main starts here
 
@@ -121,7 +120,19 @@ for idx in $(seq $FIRST $LAST); do
     $DNS_TAG)
 
       get_info
-      update_dns
+
+      if [ "x$GANETI_OP_CODE" = "xOP_INSTANCE_CREATE" ]; then
+        update_dns add
+      elif [ "x$GANETI_OP_CODE" = "xOP_INSTANCE_REMOVE" ]; then
+        update_dns delete
+      elif [ "x$GANETI_OP_CODE" = "xOP_INSTANCE_RENAME" ]; then
+        update_dns delete
+        # Let's override a variable and add ourselves
+        INSTANCE=$GANETI_INSTANCE_NEW_NAME
+        update_dns add
+      elif [ "x$GANETI_OP_CODE" = "xOP_INSTANCE_SET_PARAMS" ]; then
+        update_dns add
+      fi
 
       ;;
     esac
