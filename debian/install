@@ -8,6 +8,7 @@ vif-custom etc/xen/scripts
 snf-network-hook usr/bin
 snf-network-log usr/bin
 snf-network-dnshook usr/bin
+snf-network-reconfigure usr/bin
 
 common.sh usr/lib/snf-network
 

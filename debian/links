@@ -8,4 +8,6 @@
 /usr/bin/snf-network-dnshook /etc/ganeti/hooks/instance-rename-post.d/snf-network-dnshook
 /usr/bin/snf-network-dnshook /etc/ganeti/hooks/instance-remove-post.d/snf-network-dnshook
 
+/usr/bin/snf-network-reconfigure /etc/ganeti/hooks/instance-modify-post.d/snf-network-reconfigure
+
 /etc/ganeti/kvm-ifup-custom /etc/ganeti/kvm-vif-bridge
