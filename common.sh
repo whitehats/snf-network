@@ -554,6 +554,7 @@ get_mode_info () {
 # Note that INTERFACE is available only during ifup scripts
 function get_info () {
 
+  test -n "$RECONFIGURE" && source $STATE_DIR/$INTERFACE-env
   get_mode_info $MODE $LINK $INTERFACE
   get_ebtables_chains $INTERFACE
   get_rev4_info $IP
