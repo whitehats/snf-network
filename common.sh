@@ -37,11 +37,18 @@ source /etc/default/snf-network
 
 : ${STATE_DIR:=/var/lib/snf-network}
 : ${LOGFILE:=/var/log/ganeti/snf-network.log}
+: ${DEBUGFILE:=/var/log/ganeti/snf-network.debug}
+: ${DEBUG:=false}
+
+if $DEBUG; then
+  set -x
+  exec &>>$DEBUGFILE
+fi
 
 
 function try {
 
-  $1 &>/dev/null || true
+  $1 || true
 
 }
 
@@ -402,7 +409,7 @@ send_command () {
   fi
   log "* $nsupdate_command"
   log "* $command"
-  $nsupdate_command > /dev/null << EOF
+  $nsupdate_command <<EOF
   server $SERVER
   $command
   send
