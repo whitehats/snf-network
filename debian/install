@@ -1,0 +1,17 @@
+mac2eui64 usr/bin
+
+kvm-ifup-custom etc/ganeti
+kvm-ifdown-custom etc/ganeti
+ifup-extra etc/ganeti
+vif-custom etc/xen/scripts
+
+snf-network-hook usr/bin
+snf-network-log usr/bin
+snf-network-dnshook usr/bin
+snf-network-reconfigure usr/bin
+
+common.sh usr/lib/snf-network
+
+runlocked usr/bin
+
+snf-network.ferm etc/ferm

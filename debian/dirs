@@ -1,0 +1,14 @@
+etc/ganeti/hooks
+etc/ganeti/hooks/instance-add-post.d
+etc/ganeti/hooks/instance-modify-post.d
+etc/ganeti/hooks/instance-rename-post.d
+etc/ganeti/hooks/instance-remove-post.d
+etc/ganeti/hooks/instance-start-post.d
+etc/ganeti/hooks/instance-stop-post.d
+etc/ganeti/hooks/instance-reboot-post.d
+etc/ganeti/hooks/instance-failover-post.d
+etc/ganeti/hooks/instance-migrate-post.d
+usr/lib/snf-network
+etc/xen/scripts
+etc/ferm
+var/lib/snf-network
